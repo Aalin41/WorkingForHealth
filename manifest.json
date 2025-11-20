@@ -1,8 +1,8 @@
 {
   "name": "做身體健康？職涯計算機",
   "short_name": "做身體健康",
-  "start_url": "./index.html",
-  "scope": "./",
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
