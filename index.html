@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-TW">
   <head>
@@ -12,12 +11,12 @@
     <meta name="apple-mobile-web-app-title" content="做身體健康">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <!-- IMPORTANT: iOS Home Screen requires a PNG image, it does not support SVG Data URIs well. -->
-    <!-- Using a generated PNG placeholder that matches the theme color -->
-    <link rel="apple-touch-icon" href="https://placehold.co/192x192/0f172a/818cf8.png?text=Job&font=roboto">
+    <!-- Stable PNG placeholder for iOS Home Screen Icon -->
+    <link rel="apple-touch-icon" href="https://dummyimage.com/180x180/0f172a/818cf8.png&text=Job">
 
     <title>做身體健康？ | Working for Health?</title>
-    <link rel="manifest" href="./manifest.json" />
+    <!-- Add version query to force iOS to re-fetch manifest -->
+    <link rel="manifest" href="./manifest.json?v=2.0" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -68,15 +67,20 @@
     <script type="module" src="/index.tsx"></script>
     <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          // Bump to v5 to force update
-          navigator.serviceWorker.register('./sw.js?v=5')
-            .then((reg) => {
-                console.log('SW registered:', reg);
-                // Check for updates manually
-                reg.update();
-            })
-            .catch((err) => console.log('SW registration failed:', err));
+        window.addEventListener('load', async () => {
+          try {
+            // 1. Unregister all existing SWs to clear corrupt caches
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for(let registration of registrations) {
+              await registration.unregister();
+            }
+
+            // 2. Register fresh SW
+            const reg = await navigator.serviceWorker.register('./sw.js?v=6');
+            console.log('SW registered:', reg);
+          } catch (err) {
+            console.log('SW registration failed:', err);
+          }
         });
       }
     </script>
