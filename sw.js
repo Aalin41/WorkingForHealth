@@ -1,6 +1,6 @@
 
-const CACHE_NAME = 'career-health-v6';
-const ASSETS_TO_CACHE = [
+const CACHE_NAME = 'career-health-offline-v7';
+const URLS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json?v=2.0',
@@ -8,66 +8,78 @@ const ASSETS_TO_CACHE = [
   'https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap'
 ];
 
+// 1. 安裝 Service Worker 並立即快取所有核心檔案
 self.addEventListener('install', (event) => {
+  console.log('SW: Installing...');
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
+      console.log('SW: Caching app shell');
+      return cache.addAll(URLS_TO_CACHE);
     })
   );
-  self.skipWaiting();
+  self.skipWaiting(); // 強制讓新版 SW 接管
 });
 
+// 2. 啟動時清理舊快取
 self.addEventListener('activate', (event) => {
+  console.log('SW: Activating...');
   event.waitUntil(
-    caches.keys().then((keyList) => {
+    caches.keys().then((cacheNames) => {
       return Promise.all(
-        keyList.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('SW: Clearing old cache', cacheName);
+            return caches.delete(cacheName);
           }
         })
       );
     })
   );
-  self.clients.claim();
+  self.clients.claim(); // 立即控制所有頁面
 });
 
+// 3. 攔截請求：採取「快取優先」策略，解決 404 問題
 self.addEventListener('fetch', (event) => {
-  // Only handle GET requests
+  // 忽略非 GET 請求
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
     (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      
+      // A. 針對導航請求 (HTML 頁面)，優先回傳 index.html
+      // 這是讓 PWA 像 Native App 一樣運作的關鍵
+      if (event.request.mode === 'navigate') {
+        const cachedIndex = await cache.match('./index.html');
+        if (cachedIndex) {
+          return cachedIndex;
+        }
+        // 如果快取也沒有 (第一次)，才去網路抓
+        try {
+          return await fetch(event.request);
+        } catch (error) {
+          // 真的沒網路時的最後一道防線
+          return new Response('App Offline', { status: 503 });
+        }
+      }
+
+      // B. 針對資源請求 (JS, CSS, Images)
+      // 先看快取有沒有
+      const cachedResponse = await cache.match(event.request);
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      // 沒快取才去網路抓，抓完順便存起來
       try {
-        // 1. Network First
         const networkResponse = await fetch(event.request);
-        
-        // Check if we got a valid response
         if (networkResponse.ok) {
-          const cache = await caches.open(CACHE_NAME);
           cache.put(event.request, networkResponse.clone());
-          return networkResponse;
         }
-        
-        throw new Error('Network response was not ok');
+        return networkResponse;
       } catch (error) {
-        // 2. Cache Fallback
-        const cache = await caches.open(CACHE_NAME);
-        const cachedResponse = await cache.match(event.request);
-        
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-
-        // 3. Navigation Fallback (The Critical Fix for SPA/PWA 404s)
-        // If the user navigates to ANY URL and it fails (offline or 404), show index.html
-        if (event.request.mode === 'navigate') {
-          const index = await cache.match('./index.html');
-          return index || cache.match('./');
-        }
-
-        // Return a simple error response if absolutely nothing works
-        return new Response('OFFLINE', { status: 503, statusText: 'Service Unavailable' });
+        // 網路失敗，回傳 404 或空白
+        return new Response(null, { status: 404 });
       }
     })()
   );
