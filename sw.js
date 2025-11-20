@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'career-health-v3'; // Increment version to force update
+const CACHE_NAME = 'career-health-v4'; // Updated to v4
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -12,14 +12,14 @@ const ASSETS_TO_CACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
+      // We intentionally cache './' and 'index.html' separately to cover bases
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
-  // Force waiting service worker to become active immediately
   self.skipWaiting();
 });
 
-// Activate event - clean up old caches
+// Activate event
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keyList) => {
@@ -32,40 +32,59 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
-  // Claim clients immediately so the first load is controlled
   self.clients.claim();
 });
 
-// Fetch event - Robust SPA Strategy
+// Fetch event
 self.addEventListener('fetch', (event) => {
-  // Skip cross-origin requests (like Google Fonts/Tailwind) for complex logic, 
-  // just use simple cache-first or network-first for them.
-  if (!event.request.url.startsWith(self.location.origin) && !ASSETS_TO_CACHE.some(url => event.request.url.includes(url))) {
-    return;
-  }
+  // Basic check to avoid caching weird chrome-extension requests or non-GET
+  if (event.request.method !== 'GET') return;
 
   event.respondWith(
     (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      
       try {
-        // Network First strategy
+        // 1. Network First
         const networkResponse = await fetch(event.request);
+
+        // CRITICAL FIX: 
+        // If the server returns 404 (or any 4xx/5xx), treat it as a failure for navigation requests.
+        // Fetch only rejects on network error, not on 404. We must handle this manually.
+        if (networkResponse.status === 404 && event.request.mode === 'navigate') {
+           throw new Error('404 Navigation Fallback');
+        }
+
+        // If network is good, update cache (optional for assets, but good for freshness)
+        // We only clone if it's a valid response
+        if (networkResponse.ok && event.request.url.startsWith(self.location.origin)) {
+             cache.put(event.request, networkResponse.clone());
+        }
+        
         return networkResponse;
+
       } catch (error) {
-        // If network fails (Offline), try the cache
-        const cachedResponse = await caches.match(event.request);
+        // 2. Cache / Fallback Strategy
+        
+        // First, try to find the exact match in cache
+        const cachedResponse = await cache.match(event.request);
         if (cachedResponse) {
           return cachedResponse;
         }
 
-        // SPA Navigation Fallback:
-        // If it's a navigation request (HTML) and network failed + not in cache,
-        // return the main index.html (App Shell).
+        // 3. SPA Navigation Fallback
+        // If it's a navigation request (user changing pages or opening app) and network failed/404'd
         if (event.request.mode === 'navigate') {
-          const indexCache = await caches.match('./index.html');
-          if (indexCache) return indexCache;
+          // Try to serve the main index.html
+          const index = await cache.match('./index.html');
+          if (index) return index;
+          
+          // Last ditch effort: try root
+          const root = await cache.match('./');
+          if (root) return root;
         }
 
-        // If nothing works, throw the error
+        // If nothing works, let the error propagate (standard browser offline page)
         throw error;
       }
     })()
