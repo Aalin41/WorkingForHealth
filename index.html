@@ -69,14 +69,8 @@
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', async () => {
           try {
-            // 1. Unregister all existing SWs to clear corrupt caches
-            const registrations = await navigator.serviceWorker.getRegistrations();
-            for(let registration of registrations) {
-              await registration.unregister();
-            }
-
-            // 2. Register fresh SW
-            const reg = await navigator.serviceWorker.register('./sw.js?v=6');
+            // Register the new Cache-First Service Worker
+            const reg = await navigator.serviceWorker.register('./sw.js?v=7');
             console.log('SW registered:', reg);
           } catch (err) {
             console.log('SW registration failed:', err);
