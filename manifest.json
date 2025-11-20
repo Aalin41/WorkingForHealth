@@ -1,21 +1,22 @@
 {
-  "name": "做身體健康？職涯計算機",
+  "name": "做身體健康？",
   "short_name": "做身體健康",
-  "start_url": "./index.html",
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230f172a'/%3E%3Cpath d='M20 60C20 60 15 45 30 40C35 38 40 42 45 45C55 48 70 48 80 40C90 32 95 50 95 60C95 75 85 85 50 85C25 85 20 75 20 60Z' stroke='%23818cf8' stroke-width='3' fill='rgba(129, 140, 248, 0.1)' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M25 45L20 30L35 40' stroke='%23818cf8' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M80 40L90 30L88 45' stroke='%23818cf8' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M35 55C35 55 38 52 41 55' stroke='%23818cf8' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M50 55C50 55 53 52 56 55' stroke='%23818cf8' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E",
+      "src": "https://dummyimage.com/192x192/0f172a/818cf8.png&text=Job",
       "sizes": "192x192",
-      "type": "image/svg+xml"
+      "type": "image/png"
     },
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230f172a'/%3E%3Cpath d='M20 60C20 60 15 45 30 40C35 38 40 42 45 45C55 48 70 48 80 40C90 32 95 50 95 60C95 75 85 85 50 85C25 85 20 75 20 60Z' stroke='%23818cf8' stroke-width='3' fill='rgba(129, 140, 248, 0.1)' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M25 45L20 30L35 40' stroke='%23818cf8' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M80 40L90 30L88 45' stroke='%23818cf8' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M35 55C35 55 38 52 41 55' stroke='%23818cf8' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M50 55C50 55 53 52 56 55' stroke='%23818cf8' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E",
+      "src": "https://dummyimage.com/512x512/0f172a/818cf8.png&text=Job",
       "sizes": "512x512",
-      "type": "image/svg+xml"
+      "type": "image/png"
     }
   ]
 }
