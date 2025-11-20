@@ -1,14 +1,13 @@
 
-const CACHE_NAME = 'career-health-v5'; // Updated to v5
+const CACHE_NAME = 'career-health-v6';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './manifest.json',
+  './manifest.json?v=2.0',
   'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap'
 ];
 
-// Install event
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -18,7 +17,6 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Activate event
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keyList) => {
@@ -34,47 +32,42 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event
 self.addEventListener('fetch', (event) => {
+  // Only handle GET requests
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
     (async () => {
-      const cache = await caches.open(CACHE_NAME);
-      
       try {
         // 1. Network First
         const networkResponse = await fetch(event.request);
-
-        // 404 Handling for Navigation
-        if (networkResponse.status === 404 && event.request.mode === 'navigate') {
-           throw new Error('404 Navigation Fallback');
-        }
-
-        if (networkResponse.ok && event.request.url.startsWith(self.location.origin)) {
-             cache.put(event.request, networkResponse.clone());
+        
+        // Check if we got a valid response
+        if (networkResponse.ok) {
+          const cache = await caches.open(CACHE_NAME);
+          cache.put(event.request, networkResponse.clone());
+          return networkResponse;
         }
         
-        return networkResponse;
-
+        throw new Error('Network response was not ok');
       } catch (error) {
-        // 2. Cache / Fallback Strategy
-        
+        // 2. Cache Fallback
+        const cache = await caches.open(CACHE_NAME);
         const cachedResponse = await cache.match(event.request);
+        
         if (cachedResponse) {
           return cachedResponse;
         }
 
-        // 3. SPA Navigation Fallback (Crucial for start_url: ./index.html)
+        // 3. Navigation Fallback (The Critical Fix for SPA/PWA 404s)
+        // If the user navigates to ANY URL and it fails (offline or 404), show index.html
         if (event.request.mode === 'navigate') {
           const index = await cache.match('./index.html');
-          if (index) return index;
-          
-          const root = await cache.match('./');
-          if (root) return root;
+          return index || cache.match('./');
         }
 
-        throw error;
+        // Return a simple error response if absolutely nothing works
+        return new Response('OFFLINE', { status: 503, statusText: 'Service Unavailable' });
       }
     })()
   );
