@@ -1,6 +1,6 @@
 import { differenceInMonths, subDays, addDays, addMonths, parseISO, isSaturday, isSunday, isBefore, isSameDay, startOfDay } from 'date-fns';
-import { CalculatedStats, StressEvent, UserSettings } from '../types';
-import { POINTS_PER_DAY_OFF, TAIWAN_HOLIDAYS } from '../constants';
+import { CalculatedStats, StressEvent, UserSettings, AgeRangeType } from '../types';
+import { POINTS_PER_DAY_OFF, TAIWAN_HOLIDAYS, AGE_TENURE_MAP } from '../constants';
 
 const calculateWorkingDays = (startDate: Date, endDate: Date): number => {
   if (isBefore(endDate, startDate)) return 0;
@@ -107,12 +107,21 @@ export const calculateStats = (events: StressEvent[], settings: UserSettings): C
   };
 };
 
-export const getRecommendedDates = (onboardingDateStr: string | null) => {
-  if (!onboardingDateStr) return { adaptationDate: null, experienceDate: null };
+export const getRecommendedDates = (onboardingDateStr: string | null, ageRange?: AgeRangeType) => {
+  if (!onboardingDateStr) return { adaptationDate: null, experienceDate: null, ageBasedDate: null };
   
   const onboard = parseISO(onboardingDateStr);
-  return {
-    adaptationDate: addMonths(onboard, 12), // 12 months
-    experienceDate: addMonths(onboard, 15), // 15 months
+  const result = {
+    adaptationDate: addMonths(onboard, 12), // 12 months default
+    experienceDate: addMonths(onboard, 18), // 18 months default
+    ageBasedDate: null as Date | null,
+    ageLabel: '',
   };
+
+  if (ageRange && AGE_TENURE_MAP[ageRange]) {
+    result.ageBasedDate = addMonths(onboard, AGE_TENURE_MAP[ageRange].months);
+    result.ageLabel = AGE_TENURE_MAP[ageRange].label;
+  }
+
+  return result;
 };
