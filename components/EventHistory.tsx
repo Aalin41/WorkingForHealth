@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { StressEvent } from '../types';
+import { StressEvent, StressLevel } from '../types';
 import { format, parseISO } from 'date-fns';
 import { Trash2, Tag, Filter } from 'lucide-react';
 import { STRESS_DESCRIPTIONS, HAPPY_DESCRIPTIONS } from '../constants';
@@ -69,10 +69,11 @@ export const EventHistory: React.FC<EventHistoryProps> = ({ events, onDelete }) 
         {filteredEvents.map((event) => {
           const isStress = event.type === 'stress' || event.type === undefined;
           const descMap = isStress ? STRESS_DESCRIPTIONS : HAPPY_DESCRIPTIONS;
-          const info = descMap[event.points];
           
-          // Fallback just in case points don't match (legacy data safety)
-          const colorClass = info?.text || 'text-slate-400';
+          // Attempt to find preset info, otherwise use fallback for custom points
+          const info = descMap[event.points as StressLevel];
+          
+          const colorClass = info?.text || (isStress ? 'text-red-400' : 'text-teal-400');
           const borderColor = isStress ? 'border-red-900/30 hover:border-red-700/50' : 'border-teal-900/30 hover:border-teal-700/50';
           const bgHover = isStress ? 'hover:bg-red-950/10' : 'hover:bg-teal-950/10';
 
@@ -85,7 +86,7 @@ export const EventHistory: React.FC<EventHistoryProps> = ({ events, onDelete }) 
                       {format(parseISO(event.date), 'yyyy-MM-dd HH:mm')}
                     </span>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-bold bg-slate-900 border border-slate-700 ${colorClass}`}>
-                       {isStress ? '+' : '+'}{event.points} 點 {isStress ? '(壓力)' : '(快樂)'}
+                       {isStress ? '+' : '+'}{event.points} 點 {info ? `(${info.label})` : '(自訂)'}
                     </span>
                   </div>
                   <p className="text-slate-200 mb-2 whitespace-pre-wrap">{event.description}</p>
