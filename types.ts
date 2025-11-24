@@ -10,15 +10,18 @@ export interface StressEvent {
   id: string;
   date: string; // ISO string
   type: EventType; // New field to distinguish stress vs happy
-  points: StressLevel;
+  points: number; // Changed from StressLevel to number to allow custom inputs
   tags: string[];
   description: string;
 }
+
+export type AgeRangeType = 'fresh' | 'junior' | 'mid' | 'senior' | 'veteran';
 
 export interface UserSettings {
   onboardingDate: string | null;
   targetResignationDate: string | null;
   name: string;
+  ageRange?: AgeRangeType; // New field for age-based recommendations
 }
 
 export interface CalculatedStats {
