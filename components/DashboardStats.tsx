@@ -1,7 +1,7 @@
 import React from 'react';
 import { CalculatedStats, UserSettings } from '../types';
-import { format } from 'date-fns';
-import { Briefcase, CalendarClock, ShieldAlert, Zap, Info, Smile } from 'lucide-react';
+import { format, differenceInCalendarDays, parseISO } from 'date-fns';
+import { Briefcase, Zap, Info, Smile, ShieldAlert } from 'lucide-react';
 
 interface DashboardStatsProps {
   stats: CalculatedStats;
@@ -20,30 +20,87 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ stats, settings 
     );
   }
 
+  // Calculate Progress Percentage (Tenure Completed)
+  let progressPercent = 0;
+  if (settings.onboardingDate && settings.targetResignationDate) {
+      const start = parseISO(settings.onboardingDate);
+      const end = parseISO(settings.targetResignationDate);
+      const today = new Date();
+      
+      const totalDuration = differenceInCalendarDays(end, start);
+      const daysPassed = differenceInCalendarDays(today, start);
+      
+      if (totalDuration > 0) {
+          progressPercent = Math.min(100, Math.max(0, (daysPassed / totalDuration) * 100));
+      }
+  }
+
+  // Circular Chart Params
+  const radius = 30;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (progressPercent / 100) * circumference;
+
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       
       {/* Main Working Days Countdown Card */}
-      <div className="md:col-span-2 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-6 shadow-xl relative overflow-hidden text-white">
-        <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-        <div className="relative z-10">
+      <div className="md:col-span-2 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-6 shadow-xl relative overflow-hidden text-white flex justify-between items-center">
+        <div className="absolute top-0 right-0 -mt-16 -mr-16 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+        
+        <div className="relative z-10 flex-1">
           <h3 className="text-indigo-100 font-medium flex items-center mb-1">
             <Briefcase className="w-5 h-5 mr-2" />
             實際剩餘工作日
           </h3>
-          <p className="text-xs text-indigo-300 mb-2 opacity-80">(已扣除週六日與台灣國定假日)</p>
+          <p className="text-xs text-indigo-300 mb-2 opacity-80">(扣除假日)</p>
           
           <div className="flex items-baseline mt-1">
-            <span className="text-6xl sm:text-7xl font-bold tracking-tighter">
+            <span className="text-6xl sm:text-7xl font-bold tracking-tighter shadow-black drop-shadow-lg leading-none">
               {stats.remainingWorkingDays !== null ? stats.remainingWorkingDays : 0}
             </span>
             <span className="text-xl ml-2 opacity-80">天</span>
           </div>
 
-          <div className="mt-4 flex items-center text-sm text-indigo-200 bg-black/20 rounded-lg p-2 w-fit">
-            <span className="mr-2 opacity-70">這一天珍重再見:</span>
-            <span className="font-bold text-white">{stats.acceleratedResignationDate ? format(stats.acceleratedResignationDate, 'yyyy-MM-dd') : '-'}</span>
+          <div className="mt-4 flex items-center text-sm text-indigo-200 bg-black/20 rounded-lg p-2 w-fit backdrop-blur-sm border border-white/10">
+            <span className="mr-2 opacity-70">珍重再見:</span>
+            <span className="font-bold text-white font-mono">{stats.acceleratedResignationDate ? format(stats.acceleratedResignationDate, 'yyyy-MM-dd') : '-'}</span>
           </div>
+        </div>
+
+        {/* Circular Progress Chart */}
+        <div className="relative z-10 flex flex-col items-center justify-center ml-2 sm:ml-4">
+             <div className="relative w-20 h-20 sm:w-24 sm:h-24">
+                <svg className="w-full h-full transform -rotate-90">
+                    {/* Background Circle */}
+                    <circle
+                        cx="50%"
+                        cy="50%"
+                        r={radius}
+                        stroke="currentColor"
+                        strokeWidth="6"
+                        fill="transparent"
+                        className="text-indigo-900/50"
+                    />
+                    {/* Progress Circle */}
+                    <circle
+                        cx="50%"
+                        cy="50%"
+                        r={radius}
+                        stroke="currentColor"
+                        strokeWidth="6"
+                        fill="transparent"
+                        strokeDasharray={circumference}
+                        strokeDashoffset={strokeDashoffset}
+                        strokeLinecap="round"
+                        className="text-white drop-shadow-[0_0_4px_rgba(255,255,255,0.5)] transition-all duration-1000 ease-out"
+                    />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+                    <span className="text-sm font-bold">{Math.round(progressPercent)}%</span>
+                </div>
+             </div>
+             <span className="text-[10px] text-indigo-200 mt-1 font-medium tracking-wide">職涯進度</span>
         </div>
       </div>
 
