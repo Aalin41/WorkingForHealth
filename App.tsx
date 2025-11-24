@@ -16,7 +16,8 @@ const simpleId = () => Math.random().toString(36).substring(2, 9);
 const DEFAULT_SETTINGS: UserSettings = {
   name: '',
   onboardingDate: null,
-  targetResignationDate: null
+  targetResignationDate: null,
+  ageRange: undefined
 };
 
 function App() {
@@ -33,7 +34,7 @@ function App() {
       try {
         const parsed = JSON.parse(savedData);
         if (parsed.events) setEvents(parsed.events);
-        if (parsed.settings) setSettings(parsed.settings);
+        if (parsed.settings) setSettings({ ...DEFAULT_SETTINGS, ...parsed.settings });
       } catch (e) {
         console.error("Failed to parse saved data", e);
       }
