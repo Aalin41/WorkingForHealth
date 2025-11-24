@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StressLevel, StressEvent, EventType } from '../types';
 import { STRESS_DESCRIPTIONS, HAPPY_DESCRIPTIONS } from '../constants';
 import { Button } from './Button';
-import { AlertCircle, CheckCircle2, Flame, Smile, Heart } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Flame, Smile, Heart, Settings2 } from 'lucide-react';
 
 interface EventLoggerProps {
   onAddEvent: (event: Omit<StressEvent, 'id' | 'date'>) => void;
@@ -10,15 +10,17 @@ interface EventLoggerProps {
 
 export const EventLogger: React.FC<EventLoggerProps> = ({ onAddEvent }) => {
   const [eventType, setEventType] = useState<EventType>('stress');
-  const [points, setPoints] = useState<StressLevel>(StressLevel.LOW);
+  const [points, setPoints] = useState<number>(1);
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState<string>('');
+  const [isCustomPoints, setIsCustomPoints] = useState(false);
 
   const DESCRIPTIONS = eventType === 'stress' ? STRESS_DESCRIPTIONS : HAPPY_DESCRIPTIONS;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!description.trim()) return;
+    if (points <= 0) return;
 
     const tagList = tags.split(/[, ]+/).filter(t => t.length > 0);
     onAddEvent({
@@ -30,7 +32,14 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onAddEvent }) => {
 
     setDescription('');
     setTags('');
-    setPoints(StressLevel.LOW);
+    // Reset to default
+    setPoints(1); 
+    setIsCustomPoints(false);
+  };
+
+  const handlePresetClick = (val: number) => {
+    setPoints(val);
+    setIsCustomPoints(false);
   };
 
   return (
@@ -68,15 +77,15 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onAddEvent }) => {
         
         <form onSubmit={handleSubmit} className="space-y-4">
           
-          {/* Stress/Happy Level Selection */}
+          {/* Preset Buttons */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {(Object.keys(DESCRIPTIONS) as unknown as StressLevel[]).map((level) => {
               const info = DESCRIPTIONS[level];
-              const isSelected = points === Number(level);
+              const isSelected = !isCustomPoints && points === Number(level);
               return (
                 <div 
                   key={level}
-                  onClick={() => setPoints(Number(level))}
+                  onClick={() => handlePresetClick(Number(level))}
                   className={`cursor-pointer rounded-lg p-3 border transition-all duration-200 ${
                     isSelected 
                       ? `border-transparent bg-slate-700 ring-2 ring-offset-2 ring-offset-slate-800 ${info.ring}` 
@@ -84,13 +93,49 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onAddEvent }) => {
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className={`font-bold text-sm ${info.text}`}>{info.label}</span>
+                    <span className={`font-bold text-sm ${info.text}`}>{info.label} ({level}點)</span>
                     {isSelected && <CheckCircle2 className={`w-4 h-4 ${info.text}`} />}
                   </div>
                   <p className="text-xs text-slate-400 leading-tight">{info.desc}</p>
                 </div>
               );
             })}
+          </div>
+
+          {/* Custom Points Input */}
+          <div className={`rounded-lg border p-3 transition-colors ${
+            isCustomPoints 
+              ? 'bg-slate-750 border-indigo-500 ring-1 ring-indigo-500' 
+              : 'bg-slate-900/50 border-slate-700 hover:border-slate-600'
+          }`}>
+             <div className="flex items-center justify-between mb-2" onClick={() => setIsCustomPoints(true)}>
+               <div className="flex items-center space-x-2">
+                 <Settings2 className={`w-4 h-4 ${isCustomPoints ? 'text-indigo-400' : 'text-slate-500'}`} />
+                 <span className={`text-sm font-medium ${isCustomPoints ? 'text-white' : 'text-slate-400'}`}>
+                   自訂點數
+                 </span>
+               </div>
+               {isCustomPoints && <span className="text-xs text-indigo-400 font-medium">使用中</span>}
+             </div>
+             <div className="flex items-center space-x-3">
+                <input 
+                  type="number" 
+                  min="1"
+                  max="100"
+                  value={points}
+                  onFocus={() => setIsCustomPoints(true)}
+                  onChange={(e) => {
+                    setPoints(Number(e.target.value));
+                    setIsCustomPoints(true);
+                  }}
+                  className={`flex-1 bg-slate-800 border rounded px-3 py-2 text-white font-mono text-lg outline-none focus:ring-2 focus:ring-indigo-500 transition-all ${
+                    isCustomPoints ? 'border-slate-600' : 'border-slate-700 text-slate-500'
+                  }`}
+                />
+                <span className="text-sm text-slate-500 whitespace-nowrap">
+                   {eventType === 'stress' ? '嚴重程度' : '快樂程度'}
+                </span>
+             </div>
           </div>
 
           {/* Description */}
