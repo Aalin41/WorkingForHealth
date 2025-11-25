@@ -7,7 +7,8 @@ import { SettingsModal } from './components/SettingsModal';
 import { PrintView } from './components/PrintView';
 import { AnalysisModal } from './components/AnalysisModal';
 import { TagTutorialModal } from './components/TagTutorialModal';
-import { StressEvent, UserSettings } from './types';
+import { PointsGuideModal } from './components/PointsGuideModal';
+import { StressEvent, UserSettings, EventType } from './types';
 import { APP_STORAGE_KEY } from './constants';
 import { calculateStats } from './utils/calculations';
 
@@ -29,6 +30,8 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
   const [isTagTutorialOpen, setIsTagTutorialOpen] = useState(false);
+  const [isPointsGuideOpen, setIsPointsGuideOpen] = useState(false);
+  const [pointsGuideType, setPointsGuideType] = useState<EventType>('stress');
   
   const [isLoaded, setIsLoaded] = useState(false);
   const [printMode, setPrintMode] = useState<'all' | 'stress' | 'happy' | 'tag'>('all');
@@ -83,6 +86,11 @@ function App() {
     }, 100);
   };
 
+  const handleOpenPointsGuide = (type: EventType) => {
+    setPointsGuideType(type);
+    setIsPointsGuideOpen(true);
+  };
+
   // Initial Welcome Modal Trigger if no settings
   useEffect(() => {
     if (isLoaded && !settings.targetResignationDate && !isSettingsOpen) {
@@ -112,6 +120,7 @@ function App() {
                 <EventLogger 
                   onAddEvent={handleAddEvent} 
                   onOpenTagTutorial={() => setIsTagTutorialOpen(true)}
+                  onOpenPointsGuide={handleOpenPointsGuide}
                 />
               </div>
             </div>
@@ -148,6 +157,12 @@ function App() {
         <TagTutorialModal 
           isOpen={isTagTutorialOpen}
           onClose={() => setIsTagTutorialOpen(false)}
+        />
+
+        <PointsGuideModal 
+          isOpen={isPointsGuideOpen} 
+          onClose={() => setIsPointsGuideOpen(false)}
+          type={pointsGuideType}
         />
       </div>
 
