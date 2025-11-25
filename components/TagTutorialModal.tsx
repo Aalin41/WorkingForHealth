@@ -11,7 +11,7 @@ export const TagTutorialModal: React.FC<TagTutorialModalProps> = ({ isOpen, onCl
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
       <div className="bg-slate-900 border border-slate-700 w-full max-w-md rounded-xl shadow-2xl flex flex-col">
         <div className="flex items-center justify-between p-5 border-b border-slate-800">
           <h2 className="text-lg font-bold text-white flex items-center">
@@ -51,12 +51,12 @@ export const TagTutorialModal: React.FC<TagTutorialModalProps> = ({ isOpen, onCl
               <li>將特定標籤的罪狀全部篩選出來，截圖存證（？）。</li>
             </ul>
           </div>
-        </div>
 
         <div className="p-5 border-t border-slate-800 flex justify-end">
           <Button onClick={onClose}>我學會了</Button>
         </div>
       </div>
+    </div>
     </div>
   );
 };
