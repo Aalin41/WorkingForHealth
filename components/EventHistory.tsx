@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { StressEvent, StressLevel } from '../types';
 import { format, parseISO } from 'date-fns';
 import { Trash2, Tag, Filter } from 'lucide-react';
@@ -7,11 +7,12 @@ import { STRESS_DESCRIPTIONS, HAPPY_DESCRIPTIONS } from '../constants';
 interface EventHistoryProps {
   events: StressEvent[];
   onDelete: (id: string) => void;
+  selectedTag: string;
+  onTagSelect: (tag: string) => void;
 }
 
-export const EventHistory: React.FC<EventHistoryProps> = ({ events, onDelete }) => {
-  const [selectedTag, setSelectedTag] = useState<string>('all');
-
+export const EventHistory: React.FC<EventHistoryProps> = ({ events, onDelete, selectedTag, onTagSelect }) => {
+  
   // Get all unique tags
   const allTags = useMemo(() => {
     const tags = new Set<string>();
@@ -47,7 +48,7 @@ export const EventHistory: React.FC<EventHistoryProps> = ({ events, onDelete }) 
             <Filter className="w-4 h-4 text-slate-400 absolute left-3" />
             <select 
               value={selectedTag}
-              onChange={(e) => setSelectedTag(e.target.value)}
+              onChange={(e) => onTagSelect(e.target.value)}
               className="bg-slate-800 text-sm text-slate-300 border border-slate-700 rounded-lg pl-9 pr-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none cursor-pointer hover:bg-slate-750"
             >
               <option value="all">所有標籤</option>
