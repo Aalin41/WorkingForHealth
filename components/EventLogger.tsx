@@ -2,18 +2,21 @@ import React, { useState } from 'react';
 import { StressLevel, StressEvent, EventType } from '../types';
 import { STRESS_DESCRIPTIONS, HAPPY_DESCRIPTIONS } from '../constants';
 import { Button } from './Button';
-import { AlertCircle, CheckCircle2, Flame, Smile, Heart, Settings2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Flame, Smile, Heart, Settings2, Info, HelpCircle } from 'lucide-react';
+import { PointsGuideModal } from './PointsGuideModal';
 
 interface EventLoggerProps {
   onAddEvent: (event: Omit<StressEvent, 'id' | 'date'>) => void;
+  onOpenTagTutorial: () => void;
 }
 
-export const EventLogger: React.FC<EventLoggerProps> = ({ onAddEvent }) => {
+export const EventLogger: React.FC<EventLoggerProps> = ({ onAddEvent, onOpenTagTutorial }) => {
   const [eventType, setEventType] = useState<EventType>('stress');
   const [points, setPoints] = useState<number>(1);
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState<string>('');
   const [isCustomPoints, setIsCustomPoints] = useState(false);
+  const [isPointsGuideOpen, setIsPointsGuideOpen] = useState(false);
 
   const DESCRIPTIONS = eventType === 'stress' ? STRESS_DESCRIPTIONS : HAPPY_DESCRIPTIONS;
 
@@ -43,6 +46,7 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onAddEvent }) => {
   };
 
   return (
+    <>
     <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-lg overflow-hidden">
       {/* Tabs */}
       <div className="flex border-b border-slate-700">
@@ -132,9 +136,19 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onAddEvent }) => {
                     isCustomPoints ? 'border-slate-600' : 'border-slate-700 text-slate-500'
                   }`}
                 />
-                <span className="text-sm text-slate-500 whitespace-nowrap">
-                   {eventType === 'stress' ? '嚴重程度' : '快樂程度'}
-                </span>
+                
+                {/* Guide Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsPointsGuideOpen(true)}
+                  className="flex items-center space-x-1.5 px-3 py-2 rounded bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:border-slate-500 transition-all group"
+                  title="查看點數參考"
+                >
+                    <HelpCircle className="w-4 h-4 text-slate-400 group-hover:text-indigo-400" />
+                    <span className="text-sm text-slate-400 group-hover:text-indigo-300 font-medium">
+                        {eventType === 'stress' ? '參考嚴重度' : '參考快樂度'}
+                    </span>
+                </button>
              </div>
           </div>
 
@@ -154,7 +168,17 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onAddEvent }) => {
 
           {/* Tags */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">標籤 (選填，用空白分隔)</label>
+            <div className="flex items-center justify-between mb-2">
+               <label className="block text-sm font-medium text-slate-300">標籤 (選填，用空白分隔)</label>
+               <button 
+                type="button" 
+                onClick={onOpenTagTutorial}
+                className="flex items-center space-x-1 px-2 py-1 rounded-md bg-indigo-900/30 text-indigo-300 hover:bg-indigo-900/50 hover:text-white transition-colors text-xs font-medium border border-indigo-500/30"
+               >
+                 <Info className="w-3.5 h-3.5" />
+                 <span>💡 如何使用標籤？</span>
+               </button>
+            </div>
             <input 
               type="text"
               value={tags}
@@ -188,6 +212,13 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onAddEvent }) => {
           </div>
         </form>
       </div>
+
+      <PointsGuideModal 
+        isOpen={isPointsGuideOpen} 
+        onClose={() => setIsPointsGuideOpen(false)}
+        type={eventType}
+      />
     </div>
+    </>
   );
 };
