@@ -6,15 +6,22 @@ interface PrintViewProps {
   events: StressEvent[];
   settings: UserSettings;
   stats: CalculatedStats;
-  printMode: 'all' | 'stress' | 'happy';
+  printMode: 'all' | 'stress' | 'happy' | 'tag';
+  selectedTag: string;
 }
 
-export const PrintView: React.FC<PrintViewProps> = ({ events, settings, stats, printMode }) => {
+export const PrintView: React.FC<PrintViewProps> = ({ events, settings, stats, printMode, selectedTag }) => {
+  // Pre-filter events based on mode
+  let filteredEvents = events;
+  if (printMode === 'tag' && selectedTag !== 'all') {
+    filteredEvents = events.filter(e => e.tags.includes(selectedTag));
+  }
+
   // Split events
-  const stressEvents = events.filter(e => e.type === 'stress' || e.type === undefined)
+  const stressEvents = filteredEvents.filter(e => e.type === 'stress' || e.type === undefined)
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   
-  const happyEvents = events.filter(e => e.type === 'happy')
+  const happyEvents = filteredEvents.filter(e => e.type === 'happy')
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   const renderTable = (title: string, items: StressEvent[], isStress: boolean) => (
@@ -54,6 +61,7 @@ export const PrintView: React.FC<PrintViewProps> = ({ events, settings, stats, p
   );
 
   const getTitle = () => {
+    if (printMode === 'tag') return `專屬報告 - 標籤：${selectedTag}`;
     if (printMode === 'stress') return '離職理由清單 (壓力事件)';
     if (printMode === 'happy') return '留任理由清單 (快樂事件)';
     return '職涯評估完整報告';
@@ -70,11 +78,19 @@ export const PrintView: React.FC<PrintViewProps> = ({ events, settings, stats, p
           </div>
           <div className="text-right">
             <p><span className="font-bold">匯出日期:</span> {format(new Date(), 'yyyy-MM-dd')}</p>
-            {(printMode === 'all' || printMode === 'stress') && (
-              <p className="text-red-700"><span className="font-bold">累積壓力:</span> {stats.totalStressPoints} 點</p>
-            )}
-            {(printMode === 'all' || printMode === 'happy') && (
-              <p className="text-teal-700"><span className="font-bold">累積快樂:</span> {stats.totalHappyPoints} 點</p>
+            {printMode === 'tag' ? (
+                // For tag mode, show points specific to that tag? Or still total? 
+                // Showing totals is safer context.
+                 <p className="text-gray-500 text-xs">(顯示全域累積點數)</p>
+            ) : (
+                <>
+                    {(printMode === 'all' || printMode === 'stress') && (
+                    <p className="text-red-700"><span className="font-bold">累積壓力:</span> {stats.totalStressPoints} 點</p>
+                    )}
+                    {(printMode === 'all' || printMode === 'happy') && (
+                    <p className="text-teal-700"><span className="font-bold">累積快樂:</span> {stats.totalHappyPoints} 點</p>
+                    )}
+                </>
             )}
           </div>
         </div>
@@ -106,8 +122,8 @@ export const PrintView: React.FC<PrintViewProps> = ({ events, settings, stats, p
         </div>
       )}
 
-      {(printMode === 'all' || printMode === 'stress') && renderTable("離職理由 (壓力事件)", stressEvents, true)}
-      {(printMode === 'all' || printMode === 'happy') && renderTable("留下理由 (快樂事件)", happyEvents, false)}
+      {(printMode === 'all' || printMode === 'stress' || printMode === 'tag') && renderTable("離職理由 (壓力事件)", stressEvents, true)}
+      {(printMode === 'all' || printMode === 'happy' || printMode === 'tag') && renderTable("留下理由 (快樂事件)", happyEvents, false)}
 
       <div className="mt-12 pt-4 border-t border-gray-300 text-xs text-gray-500 text-center">
         <p>本文件由「做身體健康？」產生，僅供個人紀錄與參考。</p>
