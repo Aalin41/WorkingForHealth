@@ -3,20 +3,19 @@ import { StressLevel, StressEvent, EventType } from '../types';
 import { STRESS_DESCRIPTIONS, HAPPY_DESCRIPTIONS } from '../constants';
 import { Button } from './Button';
 import { AlertCircle, CheckCircle2, Flame, Smile, Heart, Settings2, HelpCircle } from 'lucide-react';
-import { PointsGuideModal } from './PointsGuideModal';
 
 interface EventLoggerProps {
   onAddEvent: (event: Omit<StressEvent, 'id' | 'date'>) => void;
   onOpenTagTutorial: () => void;
+  onOpenPointsGuide: (type: EventType) => void;
 }
 
-export const EventLogger: React.FC<EventLoggerProps> = ({ onAddEvent, onOpenTagTutorial }) => {
+export const EventLogger: React.FC<EventLoggerProps> = ({ onAddEvent, onOpenTagTutorial, onOpenPointsGuide }) => {
   const [eventType, setEventType] = useState<EventType>('stress');
   const [points, setPoints] = useState<number>(1);
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState<string>('');
   const [isCustomPoints, setIsCustomPoints] = useState(false);
-  const [isPointsGuideOpen, setIsPointsGuideOpen] = useState(false);
 
   const DESCRIPTIONS = eventType === 'stress' ? STRESS_DESCRIPTIONS : HAPPY_DESCRIPTIONS;
 
@@ -46,7 +45,6 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onAddEvent, onOpenTagT
   };
 
   return (
-    <>
     <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-lg overflow-hidden">
       {/* Tabs */}
       <div className="flex border-b border-slate-700">
@@ -140,7 +138,7 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onAddEvent, onOpenTagT
                 {/* Guide Button */}
                 <button
                   type="button"
-                  onClick={() => setIsPointsGuideOpen(true)}
+                  onClick={() => onOpenPointsGuide(eventType)}
                   className="flex items-center space-x-1.5 px-3 py-2 rounded bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:border-slate-500 transition-all group"
                   title="查看點數參考"
                 >
@@ -211,13 +209,6 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onAddEvent, onOpenTagT
           </div>
         </form>
       </div>
-
-      <PointsGuideModal 
-        isOpen={isPointsGuideOpen} 
-        onClose={() => setIsPointsGuideOpen(false)}
-        type={eventType}
-      />
     </div>
-    </>
   );
 };
