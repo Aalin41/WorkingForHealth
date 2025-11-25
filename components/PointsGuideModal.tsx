@@ -38,7 +38,7 @@ export const PointsGuideModal: React.FC<PointsGuideModalProps> = ({ isOpen, onCl
   const examples = isStress ? stressExamples : happyExamples;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
       <div className="bg-slate-900 border border-slate-700 w-full max-w-md rounded-xl shadow-2xl flex flex-col max-h-[75vh] sm:max-h-[600px]">
         {/* Compact Header */}
         <div className={`flex items-center justify-between p-3 border-b border-slate-800 ${isStress ? 'bg-red-900/10' : 'bg-teal-900/10'}`}>
