@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Printer, Settings as SettingsIcon, ChevronDown, FileText, Frown, Smile, Download } from 'lucide-react';
+import { Printer, Settings as SettingsIcon, ChevronDown, FileText, Frown, Smile, Download, BarChart3, Tag } from 'lucide-react';
 
 interface HeaderProps {
   onOpenSettings: () => void;
-  onPrint: (type: 'all' | 'stress' | 'happy') => void;
+  onOpenAnalysis: () => void;
+  onPrint: (type: 'all' | 'stress' | 'happy' | 'tag') => void;
+  selectedTag: string;
 }
 
 const LazyAnimalLogo = () => (
@@ -22,7 +24,7 @@ const LazyAnimalLogo = () => (
   </svg>
 );
 
-export const Header: React.FC<HeaderProps> = ({ onOpenSettings, onPrint }) => {
+export const Header: React.FC<HeaderProps> = ({ onOpenSettings, onOpenAnalysis, onPrint, selectedTag }) => {
   const [isPrintMenuOpen, setIsPrintMenuOpen] = useState(false);
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -50,7 +52,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSettings, onPrint }) => {
     };
   }, []);
 
-  const handlePrintClick = (type: 'all' | 'stress' | 'happy') => {
+  const handlePrintClick = (type: 'all' | 'stress' | 'happy' | 'tag') => {
     onPrint(type);
     setIsPrintMenuOpen(false);
   };
@@ -83,7 +85,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSettings, onPrint }) => {
             <span className="text-slate-500 text-xs font-medium">Working for Health?</span>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1 sm:space-x-2">
            
            {/* Install App Button (Only visible if installable) */}
            {installPrompt && (
@@ -95,6 +97,15 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSettings, onPrint }) => {
                <span>下載 App</span>
              </button>
            )}
+
+           {/* Analysis Button */}
+           <button 
+             onClick={onOpenAnalysis}
+             className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors"
+             title="壓力分析"
+           >
+             <BarChart3 className="w-5 h-5" />
+           </button>
 
            {/* Print Dropdown */}
            <div className="relative" ref={menuRef}>
@@ -131,6 +142,17 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSettings, onPrint }) => {
                     <Smile className="w-4 h-4 mr-3 text-teal-400" />
                     僅快樂 (留下理由)
                   </button>
+
+                  {/* Export by Tag - Only visible if tag is selected */}
+                  {selectedTag !== 'all' && (
+                    <button 
+                        onClick={() => handlePrintClick('tag')}
+                        className="w-full px-4 py-3 text-left text-sm text-indigo-200 bg-indigo-900/20 hover:bg-indigo-900/40 flex items-center border-t border-slate-700/50"
+                    >
+                        <Tag className="w-4 h-4 mr-3 text-indigo-400" />
+                        僅匯出「{selectedTag}」
+                    </button>
+                  )}
                 </div>
               </div>
             )}
