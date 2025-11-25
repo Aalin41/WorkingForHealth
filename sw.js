@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'career-health-offline-v11';
+const CACHE_NAME = 'career-health-offline-v12';
 const URLS_TO_CACHE = [
   './',
   './index.html',
