@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StressLevel, StressEvent, EventType } from '../types';
 import { STRESS_DESCRIPTIONS, HAPPY_DESCRIPTIONS } from '../constants';
 import { Button } from './Button';
-import { AlertCircle, CheckCircle2, Flame, Smile, Heart, Settings2, Info, HelpCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Flame, Smile, Heart, Settings2, HelpCircle } from 'lucide-react';
 import { PointsGuideModal } from './PointsGuideModal';
 
 interface EventLoggerProps {
@@ -175,7 +175,6 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onAddEvent, onOpenTagT
                 onClick={onOpenTagTutorial}
                 className="flex items-center space-x-1 px-2 py-1 rounded-md bg-indigo-900/30 text-indigo-300 hover:bg-indigo-900/50 hover:text-white transition-colors text-xs font-medium border border-indigo-500/30"
                >
-                 <Info className="w-3.5 h-3.5" />
                  <span>💡 如何使用標籤？</span>
                </button>
             </div>
