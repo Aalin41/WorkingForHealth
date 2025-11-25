@@ -5,10 +5,11 @@ import { EventLogger } from './components/EventLogger';
 import { EventHistory } from './components/EventHistory';
 import { SettingsModal } from './components/SettingsModal';
 import { PrintView } from './components/PrintView';
+import { AnalysisModal } from './components/AnalysisModal';
+import { TagTutorialModal } from './components/TagTutorialModal';
 import { StressEvent, UserSettings } from './types';
 import { APP_STORAGE_KEY } from './constants';
 import { calculateStats } from './utils/calculations';
-import { v4 as uuidv4 } from 'uuid'; // We need a simple ID generator. Let's simulate since I can't add packages.
 
 // Simple UUID fallback since I can't npm install in this env
 const simpleId = () => Math.random().toString(36).substring(2, 9);
@@ -23,9 +24,17 @@ const DEFAULT_SETTINGS: UserSettings = {
 function App() {
   const [events, setEvents] = useState<StressEvent[]>([]);
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
+  
+  // Modals state
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
+  const [isTagTutorialOpen, setIsTagTutorialOpen] = useState(false);
+  
   const [isLoaded, setIsLoaded] = useState(false);
-  const [printMode, setPrintMode] = useState<'all' | 'stress' | 'happy'>('all');
+  const [printMode, setPrintMode] = useState<'all' | 'stress' | 'happy' | 'tag'>('all');
+  
+  // Lifted state for filtering (shared between History and Print)
+  const [selectedTag, setSelectedTag] = useState<string>('all');
 
   // Load Data
   useEffect(() => {
@@ -66,7 +75,7 @@ function App() {
     }
   };
 
-  const handlePrint = (type: 'all' | 'stress' | 'happy') => {
+  const handlePrint = (type: 'all' | 'stress' | 'happy' | 'tag') => {
     setPrintMode(type);
     // Give React a moment to update the DOM with the correct print view before opening dialog
     setTimeout(() => {
@@ -86,7 +95,9 @@ function App() {
       <div className="no-print">
         <Header 
           onOpenSettings={() => setIsSettingsOpen(true)} 
+          onOpenAnalysis={() => setIsAnalysisOpen(true)}
           onPrint={handlePrint}
+          selectedTag={selectedTag}
         />
 
         <main className="flex-grow container max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -98,13 +109,21 @@ function App() {
             {/* Left Column: Logger */}
             <div className="lg:col-span-1">
               <div className="sticky top-24">
-                <EventLogger onAddEvent={handleAddEvent} />
+                <EventLogger 
+                  onAddEvent={handleAddEvent} 
+                  onOpenTagTutorial={() => setIsTagTutorialOpen(true)}
+                />
               </div>
             </div>
 
             {/* Right Column: History */}
             <div className="lg:col-span-2">
-              <EventHistory events={events} onDelete={handleDeleteEvent} />
+              <EventHistory 
+                events={events} 
+                onDelete={handleDeleteEvent}
+                selectedTag={selectedTag}
+                onTagSelect={setSelectedTag}
+              />
             </div>
           </div>
         </main>
@@ -119,10 +138,27 @@ function App() {
           settings={settings}
           onSave={setSettings}
         />
+
+        <AnalysisModal 
+          isOpen={isAnalysisOpen}
+          onClose={() => setIsAnalysisOpen(false)}
+          events={events}
+        />
+
+        <TagTutorialModal 
+          isOpen={isTagTutorialOpen}
+          onClose={() => setIsTagTutorialOpen(false)}
+        />
       </div>
 
       {/* Hidden Print View - Only shows when printing/saving PDF */}
-      <PrintView events={events} settings={settings} stats={stats} printMode={printMode} />
+      <PrintView 
+        events={events} 
+        settings={settings} 
+        stats={stats} 
+        printMode={printMode} 
+        selectedTag={selectedTag}
+      />
     </div>
   );
 }
