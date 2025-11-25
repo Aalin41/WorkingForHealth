@@ -101,7 +101,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSettings, onOpenAnalysis, 
            {/* Analysis Button */}
            <button 
              onClick={onOpenAnalysis}
-             className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors"
+             className="p-2 text-red-400 hover:text-white hover:bg-red-900/30 rounded-full transition-colors"
              title="壓力分析"
            >
              <BarChart3 className="w-5 h-5" />
