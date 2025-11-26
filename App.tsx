@@ -8,6 +8,7 @@ import { PrintView } from './components/PrintView';
 import { AnalysisModal } from './components/AnalysisModal';
 import { TagTutorialModal } from './components/TagTutorialModal';
 import { PointsGuideModal } from './components/PointsGuideModal';
+import { EditEventModal } from './components/EditEventModal';
 import { StressEvent, UserSettings, EventType } from './types';
 import { APP_STORAGE_KEY } from './constants';
 import { calculateStats } from './utils/calculations';
@@ -32,6 +33,9 @@ function App() {
   const [isTagTutorialOpen, setIsTagTutorialOpen] = useState(false);
   const [isPointsGuideOpen, setIsPointsGuideOpen] = useState(false);
   const [pointsGuideType, setPointsGuideType] = useState<EventType>('stress');
+  
+  // Edit State
+  const [editingEvent, setEditingEvent] = useState<StressEvent | null>(null);
   
   const [isLoaded, setIsLoaded] = useState(false);
   const [printMode, setPrintMode] = useState<'all' | 'stress' | 'happy' | 'tag'>('all');
@@ -70,6 +74,11 @@ function App() {
       date: new Date().toISOString(),
     };
     setEvents(prev => [event, ...prev]);
+  };
+
+  const handleUpdateEvent = (updatedEvent: StressEvent) => {
+    setEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
+    setEditingEvent(null); // Close modal
   };
 
   const handleDeleteEvent = (id: string) => {
@@ -130,6 +139,7 @@ function App() {
               <EventHistory 
                 events={events} 
                 onDelete={handleDeleteEvent}
+                onEdit={setEditingEvent}
                 selectedTag={selectedTag}
                 onTagSelect={setSelectedTag}
               />
@@ -163,6 +173,13 @@ function App() {
           isOpen={isPointsGuideOpen} 
           onClose={() => setIsPointsGuideOpen(false)}
           type={pointsGuideType}
+        />
+
+        <EditEventModal 
+          isOpen={!!editingEvent}
+          onClose={() => setEditingEvent(null)}
+          event={editingEvent}
+          onSave={handleUpdateEvent}
         />
       </div>
 
