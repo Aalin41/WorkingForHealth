@@ -1,17 +1,18 @@
 import React, { useMemo } from 'react';
 import { StressEvent, StressLevel } from '../types';
 import { format, parseISO } from 'date-fns';
-import { Trash2, Tag, Filter } from 'lucide-react';
+import { Trash2, Tag, Filter, Edit2 } from 'lucide-react';
 import { STRESS_DESCRIPTIONS, HAPPY_DESCRIPTIONS } from '../constants';
 
 interface EventHistoryProps {
   events: StressEvent[];
   onDelete: (id: string) => void;
+  onEdit: (event: StressEvent) => void;
   selectedTag: string;
   onTagSelect: (tag: string) => void;
 }
 
-export const EventHistory: React.FC<EventHistoryProps> = ({ events, onDelete, selectedTag, onTagSelect }) => {
+export const EventHistory: React.FC<EventHistoryProps> = ({ events, onDelete, onEdit, selectedTag, onTagSelect }) => {
   
   // Get all unique tags
   const allTags = useMemo(() => {
@@ -104,13 +105,22 @@ export const EventHistory: React.FC<EventHistoryProps> = ({ events, onDelete, se
                   )}
                 </div>
                 
-                <button 
-                  onClick={() => onDelete(event.id)}
-                  className="text-slate-600 hover:text-red-500 transition-colors p-2 opacity-0 group-hover:opacity-100"
-                  title="刪除紀錄"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button 
+                        onClick={() => onEdit(event)}
+                        className="text-slate-500 hover:text-indigo-400 p-2 transition-colors rounded hover:bg-slate-700"
+                        title="編輯紀錄"
+                    >
+                        <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button 
+                        onClick={() => onDelete(event.id)}
+                        className="text-slate-500 hover:text-red-500 p-2 transition-colors rounded hover:bg-slate-700"
+                        title="刪除紀錄"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                    </button>
+                </div>
               </div>
             </div>
           );
