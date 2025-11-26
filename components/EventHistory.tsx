@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { StressEvent, StressLevel } from '../types';
 import { format, parseISO } from 'date-fns';
-import { Trash2, Tag, Filter, Edit2 } from 'lucide-react';
+import { Trash2, Tag, Filter, Edit2, Zap, Smile } from 'lucide-react';
 import { STRESS_DESCRIPTIONS, HAPPY_DESCRIPTIONS } from '../constants';
 
 interface EventHistoryProps {
@@ -10,9 +10,19 @@ interface EventHistoryProps {
   onEdit: (event: StressEvent) => void;
   selectedTag: string;
   onTagSelect: (tag: string) => void;
+  selectedType: string;
+  onTypeSelect: (type: string) => void;
 }
 
-export const EventHistory: React.FC<EventHistoryProps> = ({ events, onDelete, onEdit, selectedTag, onTagSelect }) => {
+export const EventHistory: React.FC<EventHistoryProps> = ({ 
+  events, 
+  onDelete, 
+  onEdit, 
+  selectedTag, 
+  onTagSelect,
+  selectedType,
+  onTypeSelect
+}) => {
   
   // Get all unique tags
   const allTags = useMemo(() => {
@@ -23,12 +33,24 @@ export const EventHistory: React.FC<EventHistoryProps> = ({ events, onDelete, on
 
   const filteredEvents = useMemo(() => {
     let filtered = events;
+    
+    // 1. Filter by Type
+    if (selectedType !== 'all') {
+        filtered = filtered.filter(e => {
+            if (selectedType === 'stress') return e.type === 'stress' || e.type === undefined;
+            if (selectedType === 'happy') return e.type === 'happy';
+            return true;
+        });
+    }
+
+    // 2. Filter by Tag
     if (selectedTag !== 'all') {
       filtered = filtered.filter(e => e.tags.includes(selectedTag));
     }
+
     // Sort by date descending
     return filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [events, selectedTag]);
+  }, [events, selectedTag, selectedType]);
 
   if (events.length === 0) {
     return (
@@ -40,25 +62,45 @@ export const EventHistory: React.FC<EventHistoryProps> = ({ events, onDelete, on
 
   return (
     <div className="mt-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
         <h3 className="text-lg font-semibold text-white">紀錄列表</h3>
         
-        {/* Filter Dropdown */}
-        {allTags.length > 0 && (
-          <div className="relative flex items-center">
-            <Filter className="w-4 h-4 text-slate-400 absolute left-3" />
-            <select 
-              value={selectedTag}
-              onChange={(e) => onTagSelect(e.target.value)}
-              className="bg-slate-800 text-sm text-slate-300 border border-slate-700 rounded-lg pl-9 pr-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none cursor-pointer hover:bg-slate-750"
-            >
-              <option value="all">所有標籤</option>
-              {allTags.map(tag => (
-                <option key={tag} value={tag}>{tag}</option>
-              ))}
-            </select>
-          </div>
-        )}
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+            {/* Type Filter */}
+            <div className="relative flex-1 sm:flex-none">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                    {selectedType === 'stress' ? <Zap className="w-4 h-4 text-red-400" /> : 
+                     selectedType === 'happy' ? <Smile className="w-4 h-4 text-teal-400" /> :
+                     <Filter className="w-4 h-4 text-slate-400" />}
+                </div>
+                <select 
+                value={selectedType}
+                onChange={(e) => onTypeSelect(e.target.value)}
+                className="w-full sm:w-32 bg-slate-800 text-sm text-slate-300 border border-slate-700 rounded-lg pl-9 pr-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none cursor-pointer hover:bg-slate-750"
+                >
+                <option value="all">全部類型</option>
+                <option value="stress">只看壓力</option>
+                <option value="happy">只看快樂</option>
+                </select>
+            </div>
+
+            {/* Tag Filter */}
+            {allTags.length > 0 && (
+            <div className="relative flex-1 sm:flex-none">
+                <Tag className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <select 
+                value={selectedTag}
+                onChange={(e) => onTagSelect(e.target.value)}
+                className="w-full sm:w-auto min-w-[120px] bg-slate-800 text-sm text-slate-300 border border-slate-700 rounded-lg pl-9 pr-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none cursor-pointer hover:bg-slate-750"
+                >
+                <option value="all">所有標籤</option>
+                {allTags.map(tag => (
+                    <option key={tag} value={tag}>{tag}</option>
+                ))}
+                </select>
+            </div>
+            )}
+        </div>
       </div>
 
       <div className="space-y-3">
