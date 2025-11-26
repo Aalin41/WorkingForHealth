@@ -30,6 +30,8 @@ function App() {
   // Modals state
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
+  const [analysisType, setAnalysisType] = useState<EventType>('stress');
+  
   const [isTagTutorialOpen, setIsTagTutorialOpen] = useState(false);
   const [isPointsGuideOpen, setIsPointsGuideOpen] = useState(false);
   const [pointsGuideType, setPointsGuideType] = useState<EventType>('stress');
@@ -42,6 +44,7 @@ function App() {
   
   // Lifted state for filtering (shared between History and Print)
   const [selectedTag, setSelectedTag] = useState<string>('all');
+  const [selectedType, setSelectedType] = useState<string>('all');
 
   // Load Data
   useEffect(() => {
@@ -95,6 +98,11 @@ function App() {
     }, 100);
   };
 
+  const handleOpenAnalysis = (type: EventType) => {
+    setAnalysisType(type);
+    setIsAnalysisOpen(true);
+  };
+
   const handleOpenPointsGuide = (type: EventType) => {
     setPointsGuideType(type);
     setIsPointsGuideOpen(true);
@@ -112,7 +120,7 @@ function App() {
       <div className="no-print">
         <Header 
           onOpenSettings={() => setIsSettingsOpen(true)} 
-          onOpenAnalysis={() => setIsAnalysisOpen(true)}
+          onOpenAnalysis={handleOpenAnalysis}
           onPrint={handlePrint}
           selectedTag={selectedTag}
         />
@@ -142,6 +150,8 @@ function App() {
                 onEdit={setEditingEvent}
                 selectedTag={selectedTag}
                 onTagSelect={setSelectedTag}
+                selectedType={selectedType}
+                onTypeSelect={setSelectedType}
               />
             </div>
           </div>
@@ -162,6 +172,7 @@ function App() {
           isOpen={isAnalysisOpen}
           onClose={() => setIsAnalysisOpen(false)}
           events={events}
+          type={analysisType}
         />
 
         <TagTutorialModal 
