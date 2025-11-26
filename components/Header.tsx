@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Printer, Settings as SettingsIcon, ChevronDown, FileText, Frown, Smile, Download, BarChart3, Tag } from 'lucide-react';
+import { EventType } from '../types';
 
 interface HeaderProps {
   onOpenSettings: () => void;
-  onOpenAnalysis: () => void;
+  onOpenAnalysis: (type: EventType) => void;
   onPrint: (type: 'all' | 'stress' | 'happy' | 'tag') => void;
   selectedTag: string;
 }
@@ -98,9 +99,18 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSettings, onOpenAnalysis, 
              </button>
            )}
 
-           {/* Analysis Button */}
+           {/* Happy Analysis Button */}
            <button 
-             onClick={onOpenAnalysis}
+             onClick={() => onOpenAnalysis('happy')}
+             className="p-2 text-teal-400 hover:text-white hover:bg-teal-900/30 rounded-full transition-colors"
+             title="快樂分析"
+           >
+             <Smile className="w-5 h-5" />
+           </button>
+
+           {/* Stress Analysis Button */}
+           <button 
+             onClick={() => onOpenAnalysis('stress')}
              className="p-2 text-red-400 hover:text-white hover:bg-red-900/30 rounded-full transition-colors"
              title="壓力分析"
            >
