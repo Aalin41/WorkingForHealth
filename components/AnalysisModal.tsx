@@ -1,26 +1,33 @@
 import React, { useMemo } from 'react';
-import { X, Frown, AlertCircle } from 'lucide-react';
-import { StressEvent } from '../types';
+import { X, Frown, AlertCircle, Smile } from 'lucide-react';
+import { StressEvent, EventType } from '../types';
 import { Button } from './Button';
 
 interface AnalysisModalProps {
   isOpen: boolean;
   onClose: () => void;
   events: StressEvent[];
+  type: EventType;
 }
 
-export const AnalysisModal: React.FC<AnalysisModalProps> = ({ isOpen, onClose, events }) => {
+export const AnalysisModal: React.FC<AnalysisModalProps> = ({ isOpen, onClose, events, type }) => {
   if (!isOpen) return null;
 
+  const isStress = type === 'stress';
+
   const stats = useMemo(() => {
-    // Filter only stress events
-    const stressEvents = events.filter(e => e.type === 'stress' || e.type === undefined);
-    const totalStressPoints = stressEvents.reduce((sum, e) => sum + e.points, 0);
+    // Filter events based on type
+    const targetEvents = events.filter(e => {
+        if (isStress) return e.type === 'stress' || e.type === undefined;
+        return e.type === 'happy';
+    });
+    
+    const totalPoints = targetEvents.reduce((sum, e) => sum + e.points, 0);
 
     const tagMap: Record<string, number> = {};
     let untaggedPoints = 0;
 
-    stressEvents.forEach(e => {
+    targetEvents.forEach(e => {
       if (e.tags.length === 0) {
         untaggedPoints += e.points;
       } else {
@@ -35,29 +42,54 @@ export const AnalysisModal: React.FC<AnalysisModalProps> = ({ isOpen, onClose, e
       .map(([tag, points]) => ({
         tag,
         points,
-        percentage: totalStressPoints > 0 ? Math.round((points / totalStressPoints) * 100) : 0
+        percentage: totalPoints > 0 ? Math.round((points / totalPoints) * 100) : 0
       }));
 
     if (untaggedPoints > 0) {
       sortedTags.push({
         tag: '(未分類)',
         points: untaggedPoints,
-        percentage: totalStressPoints > 0 ? Math.round((untaggedPoints / totalStressPoints) * 100) : 0
+        percentage: totalPoints > 0 ? Math.round((untaggedPoints / totalPoints) * 100) : 0
       });
     }
 
-    return { totalStressPoints, sortedTags };
-  }, [events]);
+    return { totalPoints, sortedTags };
+  }, [events, isStress]);
+
+  // Theme configuration
+  const theme = isStress ? {
+      bgIcon: 'bg-red-900/30',
+      textIcon: 'text-red-400',
+      title: '離職理由分析',
+      icon: <Frown className="w-5 h-5 text-red-400" />,
+      barStart: 'from-red-600',
+      barEnd: 'to-orange-500',
+      pointColor: 'text-red-400',
+      desc: '離職推手',
+      emptyText: '目前還沒有壓力紀錄，無法分析。',
+      advice: '如果某個特定標籤（例如某位主管的名字）佔比超過 50%，建議您在離職面談時...嗯，您知道該怎麼做的。'
+  } : {
+      bgIcon: 'bg-teal-900/30',
+      textIcon: 'text-teal-400',
+      title: '留任理由分析',
+      icon: <Smile className="w-5 h-5 text-teal-400" />,
+      barStart: 'from-teal-600',
+      barEnd: 'to-emerald-500',
+      pointColor: 'text-teal-400',
+      desc: '留任動力',
+      emptyText: '目前還沒有快樂紀錄，生活這麼苦嗎？',
+      advice: '這些是支撐您繼續待下去的理由。如果這些快樂的總分遠低於壓力，也許是時候設下停損點了。'
+  };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
       <div className="bg-slate-900 border border-slate-700 w-full max-w-lg rounded-xl shadow-2xl flex flex-col max-h-[90vh]">
         <div className="flex items-center justify-between p-6 border-b border-slate-800">
           <div className="flex items-center space-x-2">
-            <div className="p-2 bg-red-900/30 rounded-lg">
-                <Frown className="w-5 h-5 text-red-400" />
+            <div className={`p-2 rounded-lg ${theme.bgIcon}`}>
+                {theme.icon}
             </div>
-            <h2 className="text-xl font-bold text-white">離職理由分析</h2>
+            <h2 className="text-xl font-bold text-white">{theme.title}</h2>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
             <X className="w-6 h-6" />
@@ -65,18 +97,17 @@ export const AnalysisModal: React.FC<AnalysisModalProps> = ({ isOpen, onClose, e
         </div>
         
         <div className="p-6 overflow-y-auto">
-          {stats.totalStressPoints === 0 ? (
+          {stats.totalPoints === 0 ? (
             <div className="text-center py-8 text-slate-500">
               <AlertCircle className="w-12 h-12 mx-auto mb-3 opacity-20" />
-              <p>目前還沒有壓力紀錄，無法分析。</p>
-              <p className="text-xs mt-2">（這是好事嗎？）</p>
+              <p>{theme.emptyText}</p>
             </div>
           ) : (
             <>
                 <p className="text-slate-400 text-sm mb-6">
-                    以下顯示各個標籤佔「總壓力點數 ({stats.totalStressPoints}點)」的比例。
+                    以下顯示各個標籤佔「總{isStress ? '壓力' : '快樂'}點數 ({stats.totalPoints}點)」的比例。
                     <br/>
-                    這能幫助您釐清究竟是什麼原因讓您最想離職。
+                    這能幫助您釐清{theme.desc}的主要來源。
                 </p>
 
                 <div className="space-y-4">
@@ -90,12 +121,12 @@ export const AnalysisModal: React.FC<AnalysisModalProps> = ({ isOpen, onClose, e
                                 {item.tag}
                             </span>
                             <span className="text-slate-400">
-                                <span className="text-red-400 font-bold">{item.points}</span> 點 ({item.percentage}%)
+                                <span className={`${theme.pointColor} font-bold`}>{item.points}</span> 點 ({item.percentage}%)
                             </span>
                         </div>
                         <div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
                             <div 
-                                className="bg-gradient-to-r from-red-600 to-orange-500 h-2.5 rounded-full transition-all duration-1000" 
+                                className={`bg-gradient-to-r ${theme.barStart} ${theme.barEnd} h-2.5 rounded-full transition-all duration-1000`} 
                                 style={{ width: `${item.percentage}%` }}
                             ></div>
                         </div>
@@ -105,7 +136,7 @@ export const AnalysisModal: React.FC<AnalysisModalProps> = ({ isOpen, onClose, e
 
                 <div className="mt-8 p-4 bg-slate-800/50 rounded-lg border border-slate-700/50 text-xs text-slate-400">
                     <p className="font-bold text-slate-300 mb-1">💡 分析建議：</p>
-                    <p>如果某個特定標籤（例如某位主管的名字）佔比超過 50%，建議您在離職面談時...嗯，您知道該怎麼做的。</p>
+                    <p>{theme.advice}</p>
                 </div>
             </>
           )}
